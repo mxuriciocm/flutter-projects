@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newsly/news.dart';
+import 'package:newsly/news_detail_screen.dart';
 import 'package:newsly/utils.dart';
 
 class SearchNewsPage extends StatefulWidget {
@@ -32,8 +33,11 @@ class _SearchNewsPageState extends State<SearchNewsPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(4.0),
           child: TextField(
+            onSubmitted: (value) {
+              // filter
+            },
             controller: _controller,
             decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.search),
@@ -45,20 +49,50 @@ class _SearchNewsPageState extends State<SearchNewsPage> {
           child: ListView.builder(
             itemCount: _news.length,
             itemBuilder: (context, index) {
-              return Card(
-                child: Column(
-                  children: [
-                    Image.network(
-                      _news[index].urlToImage,
-                      height: 200,
-                      fit: BoxFit.cover,
-                      width: width,
+              return Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                NewsDetailScreen(news: _news[index]),
+                          ));
+                    },
+                    child: Card(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Image.network(
+                            _news[index].urlToImage,
+                            height: 200,
+                            fit: BoxFit.cover,
+                            width: width,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(
+                                  width: double.infinity,
+                                  height: 200,
+                                  child: Center(child: Text('No image found')));
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Text(
+                              _news[index].title,
+                              maxLines: 1,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Text(_news[index].author),
+                          )
+                        ],
+                      ),
                     ),
-                    Text(_news[index].title),
-                    Text(_news[index].author)
-                  ],
-                ),
-              );
+                  ));
             },
           ),
         )
