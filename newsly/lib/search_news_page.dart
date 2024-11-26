@@ -28,6 +28,7 @@ class _SearchNewsPageState extends State<SearchNewsPage> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.sizeOf(context).width;
     return Column(
       children: [
         Padding(
@@ -46,7 +47,16 @@ class _SearchNewsPageState extends State<SearchNewsPage> {
             itemBuilder: (context, index) {
               return Card(
                 child: Column(
-                  children: [Text(_news[index].title)],
+                  children: [
+                    Image.network(
+                      _news[index].urlToImage,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      width: width,
+                    ),
+                    Text(_news[index].title),
+                    Text(_news[index].author)
+                  ],
                 ),
               );
             },
