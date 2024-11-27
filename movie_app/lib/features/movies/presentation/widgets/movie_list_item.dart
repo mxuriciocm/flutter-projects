@@ -7,35 +7,38 @@ class MovieListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 200,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.network(
-              movie.posterPath,
-              height: 280,
-              fit: BoxFit.cover,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: SizedBox(
+        width: 200,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(
+                movie.posterPath,
+                height: 280,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          Positioned(
-              left: 10,
-              top: 10,
-              child: Stack(
-                children: [
-                  Icon(
-                    Icons.circle,
-                    color: Colors.yellow.shade800,
-                    size: 40,
-                  ),
-                  Positioned.fill(
-                      child: Center(
-                    child: Text(movie.voteAverage.toStringAsFixed(1)),
-                  ))
-                ],
-              ))
-        ],
+            Positioned(
+                left: 10,
+                top: 10,
+                child: Stack(
+                  children: [
+                    Icon(
+                      Icons.circle,
+                      color: Colors.yellow.shade800,
+                      size: 40,
+                    ),
+                    Positioned.fill(
+                        child: Center(
+                      child: Text(movie.voteAverage.toStringAsFixed(1)),
+                    ))
+                  ],
+                ))
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:movie_app/core/app_constants.dart';
+import 'package:movie_app/features/movies/data/remote/movie_detail_dto.dart';
 import 'package:movie_app/features/movies/data/remote/movie_dto.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,6 +22,22 @@ class MovieService {
       return [];
     } catch (e) {
       return [];
+    }
+  }
+
+  Future<MovieDetailDto?> getMovieById(int id) async {
+    String url =
+        '${AppConstants.baseUrl}${AppConstants.moviePath}/$id${AppConstants.apiKeyQuery}';
+    try {
+      http.Response response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == HttpStatus.ok) {
+        dynamic jsonResponse = jsonDecode(response.body);
+        return MovieDetailDto.fromJson(jsonResponse);
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 }
