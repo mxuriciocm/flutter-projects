@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:newsly/domain/news.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:newsly/presentation/bloc/news_bloc.dart';
+import 'package:newsly/presentation/bloc/news_event.dart';
+import 'package:newsly/presentation/bloc/news_state.dart';
 import 'package:newsly/presentation/newsdetails/news_details_screen.dart';
-import 'package:newsly/data/remote/news_service.dart';
-// import 'package:newsly/utils.dart';
 
 class SearchNewsPage extends StatefulWidget {
   const SearchNewsPage({super.key});
@@ -13,25 +14,6 @@ class SearchNewsPage extends StatefulWidget {
 
 class _SearchNewsPageState extends State<SearchNewsPage> {
   final TextEditingController _controller = TextEditingController();
-  List<News> _news = [];
-
-  void loadData() async {
-    // List maps = await loadJsonFromAssets('assets/articles.json');
-    // setState(() {
-    //   _news = maps.map((map) => News.fromJson(map)).toList();
-    // });
-
-    List<News> news = await NewsService().searchNews(_controller.text);
-    setState(() {
-      _news = news;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    loadData();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +24,7 @@ class _SearchNewsPageState extends State<SearchNewsPage> {
           padding: const EdgeInsets.all(4.0),
           child: TextField(
             onSubmitted: (value) {
-              loadData();
+              context.read<NewsBloc>().add(SearchNewsEvent(query: value));
             },
             controller: _controller,
             decoration: const InputDecoration(
@@ -51,67 +33,83 @@ class _SearchNewsPageState extends State<SearchNewsPage> {
                     borderRadius: BorderRadius.all(Radius.circular(16)))),
           ),
         ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: _news.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                NewsDetailScreen(news: _news[index]),
-                          ));
-                    },
-                    child: Card(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Hero(
-                            tag: _news[index].title,
-                            child: Image.network(
-                              _news[index].urlToImage,
-                              height: 200,
-                              fit: BoxFit.cover,
-                              width: width,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const SizedBox(
-                                    width: double.infinity,
-                                    height: 200,
-                                    child: Center(child: Text('No image found')));
-                              },
-                            ),
+        BlocBuilder<NewsBloc, NewsState>(builder: (context, state) {
+          if (state is NewsLoadingState) {
+            return const Expanded(
+                child: Center(child: CircularProgressIndicator()));
+          } else if (state is NewsLoadedState) {
+            return Expanded(
+              child: ListView.builder(
+                itemCount: state.news.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    NewsDetailScreen(news: state.news[index]),
+                              ));
+                        },
+                        child: Card(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Hero(
+                                tag: state.news[index].title,
+                                child: Image.network(
+                                  state.news[index].urlToImage,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                  width: width,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const SizedBox(
+                                        width: double.infinity,
+                                        height: 200,
+                                        child: Center(
+                                            child: Text('No image found')));
+                                  },
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Text(
+                                  state.news[index].title,
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Text(state.news[index].author),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  state.news[index].description,
+                                  maxLines: 3,
+                                ),
+                              )
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Text(
-                              _news[index].title,
-                              maxLines: 1,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Text(_news[index].author),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              _news[index].description,
-                              maxLines: 3,
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ));
-            },
-          ),
-        )
+                        ),
+                      ));
+                },
+              ),
+            );
+          } else if (state is NewsErrorState) {
+            return Expanded(
+                child: Center(
+              child: Text('Failed to load news: ${state.message}'),
+            ));
+          } else {
+            return const Expanded(
+                child: Center(child: Text('Please enter a search query')));
+          }
+        }),
       ],
     );
   }
